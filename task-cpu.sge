@@ -1,0 +1,29 @@
+#!/bin/bash
+#$ -cwd
+#$ -o kkstt-v1.out
+#$ -M gthakkar@m.ffzg.hr
+#$ -m bea
+#$ -cwd
+#$ -N kk-stt
+#$ -j y
+
+
+
+
+module load conda
+source activate asr
+
+python -V
+# pip install datasets 
+# pip install torch torchvision torchaudio
+# pip install transformers
+# pip install librosa
+# pip install evaluate>=0.30
+# pip install jiwer
+# pip install gradio
+# pip install absl-py tensorboard tensorboardX
+git lfs install
+
+# rm -rf /home/gthakkar/.cache/huggingface/datasets/
+# cuda-wrapper.sh  python train.py
+python upload.py

@@ -1,6 +1,8 @@
 from datasets import load_dataset, DatasetDict, Dataset, Audio
 import pandas as pd
 
+lang = "marathi"
+model_name  = "openai/whisper-medium"
 df = pd.read_json("newsonair_konkani_external_aligned_lab_02-09-2021_06-55/data.json")
 df = df [["audioFilename","text"]]
 df["audioFilename"] = "newsonair_konkani_external_aligned_lab_02-09-2021_06-55/"+ df["audioFilename"] 
@@ -23,23 +25,23 @@ print(common_voice)
 
 from transformers import WhisperFeatureExtractor
 
-feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
+feature_extractor = WhisperFeatureExtractor.from_pretrained(model_name)
 
 from transformers import WhisperTokenizer
 
-tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", language="Marathi", task="transcribe")
+tokenizer = WhisperTokenizer.from_pretrained(model_name, language=f"{lang}", task="transcribe")
 
 
 from transformers import WhisperProcessor
 
-processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="Marathi", task="transcribe")
+processor = WhisperProcessor.from_pretrained(model_name, language=f"{lang}", task="transcribe")
 
 
 print(common_voice["train"][0])
 
 from datasets import Audio
 
-# common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
+common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 print(common_voice["train"][0])
 
@@ -111,7 +113,7 @@ def compute_metrics(pred):
 
 from transformers import WhisperForConditionalGeneration
 
-model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")
+model = WhisperForConditionalGeneration.from_pretrained(model_name)
 
 model.config.forced_decoder_ids = None
 model.config.suppress_tokens = []
@@ -119,12 +121,12 @@ model.config.suppress_tokens = []
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir="./whisper-small-gom",  # change to a repo name of your choice
-    per_device_train_batch_size=16,
+    output_dir=f"./{model_name}-gom-v2",  # change to a repo name of your choice
+    per_device_train_batch_size=8,
     gradient_accumulation_steps=2,  # increase by 2x for every 2x decrease in batch size
-    learning_rate=1e-5,
-    warmup_steps=500,
-    max_steps=4000,
+    learning_rate=0.9e-5,
+    warmup_steps=1000,#500,
+    max_steps=8000,#4000,
     gradient_checkpointing=True,
     fp16=True,
     evaluation_strategy="steps",
@@ -138,7 +140,8 @@ training_args = Seq2SeqTrainingArguments(
     load_best_model_at_end=True,
     metric_for_best_model="wer",
     greater_is_better=False,
-    push_to_hub=True, #TDDo
+    push_to_hub=False, #TDDo
+    optim="adamw_bnb_8bit"
 )
 
 
