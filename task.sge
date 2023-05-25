@@ -25,7 +25,7 @@ python -V
 # pip install jiwer
 # pip install gradio
 # pip install absl-py tensorboard tensorboardX
-pip install bitsandbytes
+# pip install bitsandbytes
 # rm -rf /home/gthakkar/.cache/huggingface/datasets/
 cuda-wrapper.sh  python train.py
 # cuda-wrapper.sh  python upload.py

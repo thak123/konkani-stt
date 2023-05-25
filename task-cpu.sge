@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -cwd
-#$ -o kkstt-v1.out
+#$ -o kkstt-data-preparation.out
 #$ -M gthakkar@m.ffzg.hr
 #$ -m bea
 #$ -cwd
@@ -22,8 +22,10 @@ python -V
 # pip install jiwer
 # pip install gradio
 # pip install absl-py tensorboard tensorboardX
-git lfs install
+# git lfs install
 
 # rm -rf /home/gthakkar/.cache/huggingface/datasets/
 # cuda-wrapper.sh  python train.py
-python upload.py
+# python upload.py
+python prepare_dataset.py
+

@@ -1,8 +1,10 @@
 from datasets import load_dataset, DatasetDict, Dataset, Audio
 import pandas as pd
+from transformers import EarlyStoppingCallback
+
 
 lang = "marathi"
-model_name  = "openai/whisper-medium"
+model_name  = "openai/whisper-small"
 df = pd.read_json("newsonair_konkani_external_aligned_lab_02-09-2021_06-55/data.json")
 df = df [["audioFilename","text"]]
 df["audioFilename"] = "newsonair_konkani_external_aligned_lab_02-09-2021_06-55/"+ df["audioFilename"] 
@@ -117,16 +119,20 @@ model = WhisperForConditionalGeneration.from_pretrained(model_name)
 
 model.config.forced_decoder_ids = None
 model.config.suppress_tokens = []
+model.config.dropout = 0.2 #0.1
+# to use gradient checkpointing
+model.config.use_cache = True
 
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"./{model_name}-gom-v2",  # change to a repo name of your choice
-    per_device_train_batch_size=8,
-    gradient_accumulation_steps=2,  # increase by 2x for every 2x decrease in batch size
-    learning_rate=0.9e-5,
-    warmup_steps=1000,#500,
-    max_steps=8000,#4000,
+    output_dir=f"./{model_name}-gom-v3.2",  # change to a repo name of your choice
+    per_device_train_batch_size=16,
+    gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
+    eval_accumulation_steps=1,
+    learning_rate=0.8e-5,
+    warmup_steps=500,#500,
+    max_steps=2000, #8000,#4000,
     gradient_checkpointing=True,
     fp16=True,
     evaluation_strategy="steps",
@@ -134,14 +140,15 @@ training_args = Seq2SeqTrainingArguments(
     predict_with_generate=True,
     generation_max_length=225,
     save_steps=1000,
-    eval_steps=1000,
+    eval_steps=500,
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
     metric_for_best_model="wer",
     greater_is_better=False,
     push_to_hub=False, #TDDo
-    optim="adamw_bnb_8bit"
+    optim="adamw_bnb_8bit",
+   
 )
 
 
@@ -155,6 +162,8 @@ trainer = Seq2SeqTrainer(
     data_collator=data_collator,
     compute_metrics=compute_metrics,
     tokenizer=processor.feature_extractor,
+    callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
+
 )
 
 processor.save_pretrained(training_args.output_dir)
