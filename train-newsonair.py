@@ -5,13 +5,23 @@ from transformers import EarlyStoppingCallback
 
 lang = "marathi"
 model_name  = "openai/whisper-small"
-
-df = pd.read_csv("KonkaniCorpusDatasetRestructured.csv", sep="\t")
+df = pd.read_json("newsonair_konkani_external_aligned_lab_02-09-2021_06-55/data.json")
+df = df [["audioFilename","text"]]
+df["audioFilename"] = "newsonair_konkani_external_aligned_lab_02-09-2021_06-55/"+ df["audioFilename"] 
 
 audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist() ,
-                                   "sentence":df["sentences"].values.tolist()}).cast_column("audio", Audio())
+                                   "sentence":df["text"].values.tolist()}).cast_column("audio", Audio())
 
 common_voice = audio_dataset.train_test_split(test_size=0.15,seed= 42)
+
+# common_voice = DatasetDict()
+
+# common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "hi", split="train+validation", use_auth_token=True)
+# common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "hi", split="test", use_auth_token=True)
+
+print(common_voice)
+
+# common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes"])
 
 print(common_voice)
 
@@ -116,13 +126,13 @@ model.config.use_cache = True
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"./{model_name}-gom-LDC-v1.0",  # change to a repo name of your choice
+    output_dir=f"./{model_name}-gom-v3.2",  # change to a repo name of your choice
     per_device_train_batch_size=16,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     eval_accumulation_steps=1,
     learning_rate=0.8e-5,
     warmup_steps=500,#500,
-    # max_steps=2000, #8000,#4000,
+    max_steps=2000, #8000,#4000,
     gradient_checkpointing=True,
     fp16=True,
     evaluation_strategy="steps",

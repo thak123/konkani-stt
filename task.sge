@@ -17,9 +17,9 @@ module switch cuda cuda/11-3
 source activate asr
 
 python -V
-# pip install datasets 
-# pip install torch torchvision torchaudio
-# pip install transformers
+pip install dateasets  -U
+pip install torch torchvision torchaudio -U
+pip install transformers -U
 # pip install librosa
 # pip install evaluate>=0.30
 # pip install jiwer
