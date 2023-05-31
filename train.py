@@ -8,8 +8,8 @@ model_name  = "openai/whisper-small"
 
 df = pd.read_csv("KonkaniCorpusDatasetRestructured.csv", sep="\t")
 
-audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist() ,
-                                   "sentence":df["sentences"].values.tolist()}).cast_column("audio", Audio())
+audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
+                                   "sentence":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio(sampling_rate=16000))
 
 common_voice = audio_dataset.train_test_split(test_size=0.15,seed= 42)
 
@@ -37,6 +37,12 @@ common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
 print(common_voice["train"][0])
 
+max_label_length = 448
+
+def filter_labels(labels):
+    """Filter label sequences longer than max length"""
+    return len(labels) < max_label_length
+
 def prepare_dataset(batch):
     # load and resample audio data from 48 to 16kHz
     audio = batch["audio"]
@@ -49,6 +55,9 @@ def prepare_dataset(batch):
     return batch
 
 common_voice = common_voice.map(prepare_dataset, remove_columns=common_voice.column_names["train"])
+
+common_voice = common_voice.filter(filter_labels, input_columns=["labels"])
+
 
 import torch
 
@@ -111,6 +120,7 @@ model.config.forced_decoder_ids = None
 model.config.suppress_tokens = []
 model.config.dropout = 0.2 #0.1
 # to use gradient checkpointing
+# model.config.max_length = 512
 model.config.use_cache = True
 
 from transformers import Seq2SeqTrainingArguments
@@ -136,8 +146,8 @@ training_args = Seq2SeqTrainingArguments(
     load_best_model_at_end=True,
     metric_for_best_model="wer",
     greater_is_better=False,
-    push_to_hub=False, #TDDo
-    optim="adamw_bnb_8bit",
+    push_to_hub=False, #ToDo
+    # optim="adamw_bnb_8bit",
    
 )
 

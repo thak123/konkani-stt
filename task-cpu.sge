@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -cwd
-#$ -o kkstt-data-preparation.out
+#$ -o kkstt-data-test.out
 #$ -M gthakkar@m.ffzg.hr
 #$ -m bea
 #$ -cwd
@@ -27,5 +27,6 @@ python -V
 # rm -rf /home/gthakkar/.cache/huggingface/datasets/
 # cuda-wrapper.sh  python train.py
 # python upload.py
-python prepare_dataset.py
-
+# python prepare_dataset.py
+# python test.py
+python data_generation_non-repeating.py
