@@ -47,20 +47,21 @@ for index, row in df.iterrows():
     if search_term in checklist: 
 #         print(row['sentence'], row['txt_path'])
         # new_sentence = row['sentence'] + " " +row['sentence'] + " " +row['sentence']
-        new_sentences.append(row['sentence'])
+        # new_sentences.append(row['sentence'])
+        pass
     else:
         new_sentences.append(row['sentence'])
     
-    audio_file_name = row['txt_path'].split('.txt')[0]+".wav"
-    print(audio_file_name)
-    audio_file_names.append(audio_file_name)
+        audio_file_name = row['txt_path'].split('.txt')[0]+".wav"
+        # print(audio_file_name)
+        audio_file_names.append(audio_file_name)
    
 
 
 # In[50]:
 
-
-len(new_sentences), df.shape,len(audio_file_names)
+print("length")
+print(len(new_sentences), df.shape,len(audio_file_names))
 
 
 # In[51]:
@@ -71,14 +72,18 @@ audio_file_names
 
 # In[52]:
 
+df = pd.DataFrame.from_dict({
+"audioFilename":  audio_file_names,
+"new_sentence": new_sentences
+})
 
-df["audioFilename"] =  audio_file_names
+
 
 
 # In[53]:
 
 
-df["new_sentence"] = new_sentences
+
 
 
 # In[54]:
@@ -103,7 +108,7 @@ df
 # In[60]:
 
 
-df.to_csv("KonkaniCorpusDatasetRestructuredNonRepeating.csv",sep="\t",index=False)
+df.to_csv("KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv",sep="\t",index=False)
 
 
 # In[61]:
@@ -117,7 +122,7 @@ import pandas as pd
 from os.path import exists
 
 print("hi")
-df = pd.read_csv("KonkaniCorpusDatasetRestructuredNonRepeating.csv", sep="\t")
+df = pd.read_csv("KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv", sep="\t")
 print(df.describe())
 audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
                                    "sentence":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio())

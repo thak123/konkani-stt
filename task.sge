@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -cwd
-#$ -o kkstt-v2.out
+#$ -o kkstt-v4-newsair+ldc+moreepochs.out
 #$ -M gthakkar@m.ffzg.hr
 #$ -m bea
 #$ -cwd
@@ -17,16 +17,17 @@ module switch cuda cuda/11-3
 source activate asr
 
 python -V
-# pip install datasets  -U
-# pip install torch torchvision torchaudio -U
-# pip install transformers -U
-# pip install librosa
-# pip install evaluate>=0.30
-# pip install jiwer
-# pip install gradio
-# pip install absl-py tensorboard tensorboardX
-# pip install bitsandbytes -U
-# pip install --upgrade accelerate soundfile
-# rm -rf /home/gthakkar/.cache/huggingface/datasets/
-cuda-wrapper.sh  python train.py
+pip install datasets  -U
+pip install torch torchvision torchaudio -U
+pip install transformers -U
+pip install librosa
+pip install evaluate>=0.30
+pip install jiwer
+pip install gradio
+pip install absl-py tensorboard tensorboardX
+pip install bitsandbytes -U
+pip install --upgrade accelerate soundfile
+rm -rf /home/gthakkar/.cache/huggingface/datasets/
+cuda-wrapper.sh  python train-combined.py
+# cuda-wrapper.sh  python train.py
 # cuda-wrapper.sh  python upload.py

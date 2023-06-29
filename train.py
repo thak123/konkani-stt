@@ -6,7 +6,9 @@ from transformers import EarlyStoppingCallback
 lang = "marathi"
 model_name  = "openai/whisper-small"
 
-df = pd.read_csv("KonkaniCorpusDatasetRestructured.csv", sep="\t")
+# df = pd.read_csv("KonkaniCorpusDatasetRestructured.csv", sep="\t")
+# df = pd.read_csv("KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv", sep="\t")
+df = pd.read_csv("KonkaniCorpusDatasetRestructuredNonRepeating.csv", sep="\t")
 
 audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
                                    "sentence":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio(sampling_rate=16000))
@@ -118,7 +120,7 @@ model = WhisperForConditionalGeneration.from_pretrained(model_name)
 
 model.config.forced_decoder_ids = None
 model.config.suppress_tokens = []
-model.config.dropout = 0.2 #0.1
+model.config.dropout = 0.3 #0.1 #0.2
 # to use gradient checkpointing
 # model.config.max_length = 512
 model.config.use_cache = True
@@ -126,7 +128,7 @@ model.config.use_cache = True
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"./{model_name}-gom-LDC-v1.0",  # change to a repo name of your choice
+    output_dir=f"./{model_name}-gom-LDC-v1.3-repeating-not fixed",  # gom-LDC-v1.non-repeating" change to a repo name of your choice
     per_device_train_batch_size=16,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     eval_accumulation_steps=1,
@@ -144,8 +146,8 @@ training_args = Seq2SeqTrainingArguments(
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
-    metric_for_best_model="wer",
-    greater_is_better=False,
+    metric_for_best_model="eval_loss", #"wer",
+    # greater_is_better=True,#False,
     push_to_hub=False, #ToDo
     # optim="adamw_bnb_8bit",
    

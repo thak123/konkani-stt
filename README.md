@@ -27,3 +27,8 @@ https://towardsdatascience.com/speech-to-text-with-openais-whisper-53d5cea9005e
 ssh -L 8096:127.0.0.1:8096 -N -f gaurisht@cleopatra.ijs.si
 
 https://www.machinelearningnuggets.com/gradio-tutorial/
+V1 whisper-small-gom-LDC-v1.0
+
+KonkaniCorpusDatasetRestructuredNonRepeating.csv - audio and sentence as it is
+KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv repeating values removed |gom-LDC-v1.non-repeating"
+KonkaniCorpusDatasetRestructuredNonRepeating ./{model_name}-gom-LDC-v1.3-repeating-not fixed
