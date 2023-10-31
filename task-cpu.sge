@@ -1,10 +1,10 @@
 #!/bin/bash
 #$ -cwd
-#$ -o kkstt-data-test.out
+#$ -o kkstt-data-stats.out
 #$ -M gthakkar@m.ffzg.hr
 #$ -m bea
 #$ -cwd
-#$ -N kk-stt
+#$ -N kk-stt-stats
 #$ -j y
 
 
@@ -17,7 +17,7 @@ python -V
 # pip install datasets 
 # pip install torch torchvision torchaudio
 # pip install transformers
-# pip install librosa
+pip install librosa soundfile
 # pip install evaluate>=0.30
 # pip install jiwer
 # pip install gradio
@@ -29,4 +29,6 @@ python -V
 # python upload.py
 # python prepare_dataset.py
 # python test.py
-python data_generation_non-repeating.py
+# python data_generation_non-repeating.py
+# python stats.py
+python train2wav2vec2.py
