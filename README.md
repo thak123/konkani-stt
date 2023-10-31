@@ -32,3 +32,6 @@ V1 whisper-small-gom-LDC-v1.0
 KonkaniCorpusDatasetRestructuredNonRepeating.csv - audio and sentence as it is
 KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv repeating values removed |gom-LDC-v1.non-repeating"
 KonkaniCorpusDatasetRestructuredNonRepeating ./{model_name}-gom-LDC-v1.3-repeating-not fixed
+
+
+CIIL dataset

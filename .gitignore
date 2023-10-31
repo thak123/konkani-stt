@@ -166,3 +166,4 @@ openai/
 *.zip
 whisper-*
 newsonair_*
+wav2vec2*
