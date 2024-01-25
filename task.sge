@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -cwd
-#$ -o kkstt-v1.out
+#$ -o evaluate-v1.out
 #$ -M gthakkar@m.ffzg.hr
 #$ -m bea
 #$ -cwd
@@ -13,7 +13,7 @@
 
 module load conda
 module load cuda
-module switch cuda cuda/11-3
+module switch cuda cuda/12-3
 source activate asr
 
 python -V
@@ -29,5 +29,6 @@ python -V
 # pip install --upgrade accelerate soundfile
 # rm -rf /home/gthakkar/.cache/huggingface/datasets/
 # cuda-wrapper.sh  python train-combined.py
-cuda-wrapper.sh  python train.py
+# cuda-wrapper.sh  python train.py
+cuda-wrapper.sh  python train-no.py
 # cuda-wrapper.sh  python upload.py

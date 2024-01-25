@@ -5,14 +5,26 @@ import torch
 from datasets.utils.logging import disable_progress_bar
 disable_progress_bar()
 
+SEED = 1042 #10 #42
+from transformers import set_seed
+
+set_seed(SEED)
+print(SEED)
+
 df = pd.read_csv("KonkaniCorpusDatasetRestructuredNonRepeating.csv", sep="\t")
 
-audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
-                                   "text":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio(sampling_rate=16000))
+# audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
+#                                    "text":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio(sampling_rate=16000))
 
-common_voice = audio_dataset.train_test_split(test_size=0.15,seed= 42)
+# train_testvalid = audio_dataset.train_test_split(test_size=0.15,seed= SEED)
+# test_valid = train_testvalid['test'].train_test_split(test_size=0.1,seed= SEED)
 
-print(common_voice)
+# common_voice = DatasetDict({
+#     'train': train_testvalid['train'],
+#     'validation': test_valid['test'],
+#     'test': test_valid['train']
+# })
+# print(common_voice)
 
 import re
 chars_to_ignore_regex = '[\,\?\.\!\-\;\:\"]'
@@ -21,7 +33,7 @@ def remove_special_characters(batch):
     batch["text"] = re.sub(chars_to_ignore_regex, '', batch["text"]).lower()
     return batch
 
-common_voice = common_voice.map(remove_special_characters)
+# common_voice = common_voice.map(remove_special_characters)
 
 
 def extract_all_chars(batch):
@@ -42,7 +54,7 @@ def extract_all_chars(batch):
 # vocab_dict["[PAD]"] = len(vocab_dict)
 # print(len(vocab_dict))
 
-# import json
+import json
 # with open('vocab.json', 'w') as vocab_file:
 #     json.dump(vocab_dict, vocab_file)
 
@@ -74,6 +86,8 @@ def prepare_dataset(batch):
 
 # common_voice.save_to_disk("wav2vec2dataset")
 common_voice = load_from_disk("wav2vec2dataset")
+# import sys
+# sys.exit(0)
 
 import torch
 

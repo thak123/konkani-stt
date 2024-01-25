@@ -1,35 +1,25 @@
-from datasets import load_dataset, DatasetDict, Dataset, Audio, load_from_disk
+from datasets import load_dataset, DatasetDict, Dataset, Audio
 import pandas as pd
 from transformers import EarlyStoppingCallback
-# from datasets.utils.logging import disable_progress_bar
-# disable_progress_bar()
 
-SEED = 1042 #10 #42
-from transformers import set_seed
-
-set_seed(SEED)
-print(SEED)
 
 lang = "marathi"
-model_name  = "openai/whisper-large-v2"
+model_name  = "openai/whisper-small"
 
 # df = pd.read_csv("KonkaniCorpusDatasetRestructured.csv", sep="\t")
 # df = pd.read_csv("KonkaniCorpusDatasetRestructuredRepeatingRemoved.csv", sep="\t")
 df = pd.read_csv("KonkaniCorpusDatasetRestructuredNonRepeating.csv", sep="\t")
 
-audio_dataset = Dataset.from_dict({"audio":df["audioFilename"].values.tolist(), 
-                                   "sentence":df["sentences"].astype(str).values.tolist()}).cast_column("audio", Audio(sampling_rate=16000))
+df_newsonair = pd.read_json("newsonair_konkani_external_aligned_lab_02-09-2021_06-55/data.json")
+df_newsonair = df_newsonair [["audioFilename","text"]]
+df_newsonair["audioFilename"] = "newsonair_konkani_external_aligned_lab_02-09-2021_06-55/"+ df_newsonair["audioFilename"] 
 
-train_testvalid = audio_dataset.train_test_split(test_size=0.15,seed= SEED)
-test_valid = train_testvalid['test'].train_test_split(test_size=0.1,seed= SEED)
+audio_dataset = Dataset.from_dict({
+    "audio":df["audioFilename"].values.tolist()+df_newsonair["audioFilename"].values.tolist(), 
+    "sentence":df["sentences"].astype(str).values.tolist()+df_newsonair["text"].astype(str).values.tolist()
+    }).cast_column("audio", Audio(sampling_rate=16000))
 
-common_voice = DatasetDict({
-    'train': train_testvalid['train'],
-    'validation': test_valid['test'],
-    'test': test_valid['train']
-})
-
-# common_voice = audio_dataset.train_test_split(test_size=0.15,seed= SEED)
+common_voice = audio_dataset.train_test_split(test_size=0.10,seed= 42) # changed from 0.15-0.10
 
 print(common_voice)
 
@@ -72,14 +62,14 @@ def prepare_dataset(batch):
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 
-# common_voice = common_voice.map(prepare_dataset, 
-#                                 remove_columns=common_voice.column_names["train"],
-#                                 num_proc=4)
+common_voice = DatasetDict({
+    "test":common_voice["test"]
+})
 
-# common_voice = common_voice.filter(filter_labels, input_columns=["labels"])
+common_voice = common_voice.map(prepare_dataset, remove_columns=common_voice.column_names["test"])
 
-# common_voice.save_to_disk("whisper-dataset")
-common_voice = load_from_disk("whisper-dataset")
+common_voice = common_voice.filter(filter_labels, input_columns=["labels"])
+
 
 import torch
 
@@ -144,31 +134,26 @@ model.config.dropout = 0.3 #0.1 #0.2
 # to use gradient checkpointing
 # model.config.max_length = 512
 model.config.use_cache = True
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-print(device)
-model.to(device)
-print(model)
 
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"./{model_name}--{SEED}",  # gom-LDC-v1.non-repeating" change to a repo name of your choice
-    per_gpu_train_batch_size=8,#16,
+    output_dir=f"./{model_name}-gom-LDC-v1.4-repeating-not fixed combined with Newson air + epoch",  # gom-LDC-v1.non-repeating" change to a repo name of your choice
+    per_device_train_batch_size=16,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     eval_accumulation_steps=1,
-    
     learning_rate=0.8e-5,
     warmup_steps=500,#500,
+    num_train_epochs = 0,
     # max_steps=2000, #8000,#4000,
-    # gradient_checkpointing=True,
+    gradient_checkpointing=True,
     # fp16=True,
     evaluation_strategy="steps",
-    per_gpu_eval_batch_size=8,
+    per_device_eval_batch_size=16,
     predict_with_generate=True,
     generation_max_length=225,
     save_steps=1000,
     eval_steps=500,
-    num_train_epochs=5,
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
@@ -176,7 +161,8 @@ training_args = Seq2SeqTrainingArguments(
     # greater_is_better=True,#False,
     push_to_hub=False, #ToDo
     # optim="adamw_bnb_8bit",
-   
+   do_train=False,
+   do_eval=True
 )
 
 
@@ -185,17 +171,16 @@ from transformers import Seq2SeqTrainer
 trainer = Seq2SeqTrainer(
     args=training_args,
     model=model,
-    train_dataset=common_voice["train"],
-    eval_dataset=common_voice["validation"],
+    # train_dataset=#common_voice["train"],
+    eval_dataset=common_voice["test"],
     data_collator=data_collator,
     compute_metrics=compute_metrics,
     tokenizer=processor.feature_extractor,
-    callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
+    # callbacks = [EarlyStoppingCallback(early_stopping_patience=3)]
 
 )
 
-processor.save_pretrained(training_args.output_dir)
+# processor.save_pretrained(training_args.output_dir)
 
-trainer.train()
+print(trainer.evaluate())
 
-trainer.evaluate(eval_dataset = common_voice["test"])
